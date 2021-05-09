@@ -86,10 +86,15 @@ process_request(Msg, Socket) ->
 	 case erlang:list_to_tuple(string:tokens(Msg_string, ",")) of
 	 	{"publisher", Topic, Message}->
 	 		erlang:display({"publisher", Topic, Message, Socket}),
-	 		% Do Something
+	 		case pub_sub_db:read_subscribers(Topic) of
+				[] ->
+					erlang:display("no subscribers ");
+				Subscribers ->
+					erlang:display({Subscribers, subscribers}),
+					[gen_tcp:send(Subscriber, Message) || Subscriber <- Subscribers]
+			end,
 	 		ok;
-	 	{Type,Topic} ->
+	 	{"subscriber",Topic} ->
 	 		erlang:display({"subscriber", Topic, Socket}),
-	 		% Do Something
-	 		ok
+			pub_sub_db:add_subscriber(Topic, Socket)
 	 end.
