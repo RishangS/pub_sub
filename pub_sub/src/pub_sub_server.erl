@@ -55,7 +55,7 @@ init([Socket]) ->
 handle_cast(accept, State = #{socket := ListenSocket}) ->
 	{ok, AcceptSocket} = gen_tcp:accept(ListenSocket),
 	pub_sub_sup:start_socket(),
-	erlang:display({ListenSocket, State}),
+	erlang:display({"Acceptsocket is",AcceptSocket, State}),
 	{noreply, State#{socket => AcceptSocket}};
 handle_cast(_Request, State) ->
   {noreply, State}.
@@ -64,7 +64,32 @@ handle_cast(_Request, State) ->
 handle_call(_Request, _From, State) ->
   	{reply, reply, State}.
 
-handle_info(_Request, State) ->
-  	{reply, State}.
+handle_info({tcp, Socket, Msg}, State) ->
+ 	erlang:display({Socket, Msg, State, "handle_info in pubsub_server" }),
+ 	process_request(Msg, Socket),
+  	% ok = gen_tcp:send(Socket, Msg),
+  	% erlang:display({"sending message to", Socket}),
+  	{noreply, State};
+handle_info({tcp_error, Socket, _}, State) -> 
+	erlang:display({Socket, tcp_error, State}),
+	{stop, State};
+handle_info({tcp_closed, Socket}, State) -> 
+	erlang:display({Socket, tcp_closed, State}),
+	{stop, normal, State};
+handle_info(Exception, State) ->
+	erlang:display({Exception, State}),
+	{noreply, State}.
 
 
+process_request(Msg, Socket) ->
+	Msg_string = [X || X <- erlang:binary_to_list(Msg), X =/= $\", X=/=${, X=/=$}],
+	 case erlang:list_to_tuple(string:tokens(Msg_string, ",")) of
+	 	{"publisher", Topic, Message}->
+	 		erlang:display({"publisher", Topic, Message, Socket}),
+	 		% Do Something
+	 		ok;
+	 	{Type,Topic} ->
+	 		erlang:display({"subscriber", Topic, Socket}),
+	 		% Do Something
+	 		ok
+	 end.

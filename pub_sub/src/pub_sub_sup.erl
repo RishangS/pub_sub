@@ -37,7 +37,7 @@ start_socket() ->
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 
 init([]) ->
-	{ok, ListenSocket} = gen_tcp:listen(6291, [binary, {active,true}]),
+	{ok, ListenSocket} = gen_tcp:listen(6292, [binary, {active,true}]),
 	spawn_link(fun empty_listeners/0),
 	Child = 
 		[
