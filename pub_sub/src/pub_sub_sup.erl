@@ -7,29 +7,49 @@
 
 -behaviour(supervisor).
 
--export([start_link/0]).
+%% API
+-export([start_link/0,
+	 	 start_socket/0
+]).
 
+%% Supervisor callbacks
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
+%%====================================================================
+%% API functions
+%%====================================================================
+
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-%% sup_flags() = #{strategy => strategy(),         % optional
-%%                 intensity => non_neg_integer(), % optional
-%%                 period => pos_integer()}        % optional
-%% child_spec() = #{id => child_id(),       % mandatory
-%%                  start => mfargs(),      % mandatory
-%%                  restart => restart(),   % optional
-%%                  shutdown => shutdown(), % optional
-%%                  type => worker(),       % optional
-%%                  modules => modules()}   % optional
-init([]) ->
-    SupFlags = #{strategy => one_for_all,
-                 intensity => 0,
-                 period => 1},
-    ChildSpecs = [],
-    {ok, {SupFlags, ChildSpecs}}.
+start_socket() ->
+  supervisor:start_child(?MODULE, []).
 
-%% internal functions
+%%====================================================================
+%% Supervisor callbacks
+%%====================================================================
+
+%% Child :: #{id => Id, start => {M, F, A}}
+%% Optional keys are restart, shutdown, type, modules.
+%% Before OTP 18 tuples must be used to specify a child. e.g.
+%% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
+
+init([]) ->
+	{ok, ListenSocket} = gen_tcp:listen(6291, [binary, {active,true}]),
+	spawn_link(fun empty_listeners/0),
+	Child = 
+		[
+	    	pub_sub_server:child_spec(ListenSocket)
+	    ],
+	{ok, { {simple_one_for_one, 60, 3600}, Child} }.
+
+%%====================================================================
+%% Internal functions
+%%====================================================================
+%% Can start N number of listeners to process huge number of request, 
+%% this stays active even if the processes get killed
+empty_listeners() ->
+	[start_socket() || _ <- lists:seq(1,1)],
+	ok.
