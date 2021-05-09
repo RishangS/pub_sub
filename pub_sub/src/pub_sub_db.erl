@@ -58,8 +58,10 @@ delete_subscriber(Topic, Pid)->
 		SubscribersList ->
 			case lists:keyfind(Pid,1,SubscribersList)of
 				{PidR, SocR} ->
+					erlang:display({PidR, SocR, "Deleting from db"}),
 					New_SubscriberList = lists:delete({PidR, SocR},SubscribersList),
-					ets:insert(?TABLE, {Topic, [New_SubscriberList]});
+					erlang:display({New_SubscriberList}),
+					ets:insert(?TABLE, {Topic, New_SubscriberList});
 				_ ->
 					erlang:display({"Client unknown ", Pid})
 			end
