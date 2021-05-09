@@ -3,6 +3,7 @@
 -export([
 	read_subscribers/1,
 	add_subscriber/2,
+	delete_subscriber/2,
 	flush/0,
 	setup/1
 ]).
@@ -30,7 +31,14 @@ add_subscriber(Topic, Subscriber) ->
 		[] ->
 			ets:insert(?TABLE, {Topic, [Subscriber]});
 		SubscribersList ->
-			ets:insert(?TABLE, {Topic, [Subscriber | SubscribersList]})
+			{Pid, _Socket} = Subscriber,
+			case lists:keyfind(Pid,1,SubscribersList)of
+				{_PidR, _SocR} ->
+					io:format("Client already Subscribed to Topic ~p Pid ~p  ~n",[Topic, Pid]);
+				_ ->
+					ets:insert(?TABLE, {Topic, [Subscriber | SubscribersList]})
+			end
+
 	end.
 
 read_subscribers(Topic) ->
@@ -40,4 +48,19 @@ read_subscribers(Topic) ->
 	        SubscribersList;
 	    [] ->
 	        []
+	end.
+
+delete_subscriber(Topic, Pid)->
+	setup(?TABLE),
+	case read_subscribers(Topic) of
+		[] ->
+			erlang:display({"table_empty"});
+		SubscribersList ->
+			case lists:keyfind(Pid,1,SubscribersList)of
+				{PidR, SocR} ->
+					New_SubscriberList = lists:delete({PidR, SocR},SubscribersList),
+					ets:insert(?TABLE, {Topic, [New_SubscriberList]});
+				_ ->
+					erlang:display({"Client unknown ", Pid})
+			end
 	end.

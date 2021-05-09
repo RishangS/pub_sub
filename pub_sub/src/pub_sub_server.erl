@@ -84,17 +84,20 @@ handle_info(Exception, State) ->
 process_request(Msg, Socket) ->
 	Msg_string = [X || X <- erlang:binary_to_list(Msg), X =/= $\", X=/=${, X=/=$}],
 	 case erlang:list_to_tuple(string:tokens(Msg_string, ",")) of
-	 	{"publisher", Topic, Message}->
-	 		erlang:display({"publisher", Topic, Message, Socket}),
+	 	{Pid, "publish", Topic, Message}->
+	 		erlang:display({Pid, "publish", Topic, Message, Socket}),
 	 		case pub_sub_db:read_subscribers(Topic) of
 				[] ->
 					erlang:display("no subscribers ");
 				Subscribers ->
 					erlang:display({Subscribers, subscribers}),
-					[gen_tcp:send(Subscriber, Message) || Subscriber <- Subscribers]
+					[gen_tcp:send(Subscriber, Message) || {_Pid, Subscriber} <- Subscribers]
 			end,
 	 		ok;
-	 	{"subscriber",Topic} ->
-	 		erlang:display({"subscriber", Topic, Socket}),
-			pub_sub_db:add_subscriber(Topic, Socket)
+	 	{Pid, "subscribe",Topic} ->
+	 		erlang:display({Pid, "subscribe", Topic, Socket}),
+			pub_sub_db:add_subscriber(Topic, {Pid, Socket});
+		{Pid, "unsubscribe",Topic}->
+	 		erlang:display({Pid, "unsubscribe", Topic}),
+			pub_sub_db:delete_subscriber(Topic, Pid)
 	 end.
