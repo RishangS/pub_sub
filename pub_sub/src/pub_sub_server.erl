@@ -108,7 +108,11 @@ process_request(Msg, Socket) ->
 			pub_sub_db:delete_subscriber(Topic, Pid);
 		{Pid, "disconnect",Topic}->
 	 		erlang:display({?MODULE, Pid, "disconnect", Topic}),
-	 		disconnect(Pid,Topic)
+	 		disconnect(Pid,Topic);
+	 	_ ->
+	 		erlang:display({?MODULE, "TOPIC INVALID"}),
+	 		gen_tcp:send(Socket,"TOPIC INVALID"),
+	 		gen_tcp:close(Socket)
 	 end.
 
 disconnect(Pid, Topic)->
