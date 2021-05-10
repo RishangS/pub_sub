@@ -35,9 +35,12 @@ start_socket() ->
 %% Optional keys are restart, shutdown, type, modules.
 %% Before OTP 18 tuples must be used to specify a child. e.g.
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
+%% Restart Mechanism one_for_one, one_for_all, rest_for_one, simple_one_for_one
+%% Intensity : is an integer which specifies the number of times a process can be restarted
+%% Period is the time interval in which the restart occures
 
 init([]) ->
-	{ok, ListenSocket} = gen_tcp:listen(6291, [binary, {active,true}]),
+	{ok, ListenSocket} = gen_tcp:listen(6292, [binary, {active,true}]),
 	spawn_link(fun empty_listeners/0),
 	Child = 
 		[

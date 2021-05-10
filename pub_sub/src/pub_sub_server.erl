@@ -85,12 +85,14 @@ handle_info(Exception, State) ->
 %% Args Msg = {Pid, command, topic, Msg} (Msg needed if command is publish)
 process_request(Msg, Socket) ->
 	Msg_string = [X || X <- erlang:binary_to_list(Msg), X =/= $\", X=/=${, X=/=$}],
-	 case erlang:list_to_tuple(string:tokens(Msg_string, ",")) of
+	Msg_tuple = erlang:list_to_tuple(string:tokens(Msg_string, ",")),
+	erlang:display({Msg_tuple}),
+	 case Msg_tuple of
 	 	{Pid, "publish", Topic, Message}->
 	 		erlang:display({Pid, "publish", Topic, Message, Socket}),
 	 		case pub_sub_db:read_subscribers(Topic) of
 				[] ->
-					erlang:display("no subscribers ");
+					erlang:display("NO SUBSCRIBERS ");
 				Subscribers ->
 					erlang:display({Subscribers, subscribers}),
 					[gen_tcp:send(Subscriber, Message) || {_Pid, Subscriber} <- Subscribers]
@@ -101,5 +103,19 @@ process_request(Msg, Socket) ->
 			pub_sub_db:add_subscriber(Topic, {Pid, Socket});
 		{Pid, "unsubscribe",Topic}->
 	 		erlang:display({Pid, "unsubscribe", Topic}),
-			pub_sub_db:delete_subscriber(Topic, Pid)
+			pub_sub_db:delete_subscriber(Topic, Pid);
+		{Pid, "disconnect",Topic}->
+	 		erlang:display({Pid, "disconnect", Topic}),
+	 		disconnect(Pid,Topic)
 	 end.
+
+disconnect(Pid, Topic)->
+	Subscribers = pub_sub_db:read_subscribers(Topic),
+	erlang:display({subscribers,Subscribers}),
+	case lists:keyfind(Pid, 1 , Subscribers) of
+		{SPid, SSocket} ->
+			erlang:display({sPid, sSocket, SPid, SSocket}),
+			pub_sub_db:delete_subscriber(Topic, Pid),
+			gen_tcp:close(SSocket);
+		_ ->
+			erlang:display({"CLIENT UNKNOWN"}),
