@@ -118,4 +118,5 @@ disconnect(Pid, Topic)->
 			pub_sub_db:delete_subscriber(Topic, Pid),
 			gen_tcp:close(SSocket);
 		_ ->
-			erlang:display({"CLIENT UNKNOWN"}),
+			erlang:display({"CLIENT UNKNOWN"})
+	end.
