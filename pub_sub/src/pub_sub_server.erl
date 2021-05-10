@@ -80,7 +80,9 @@ handle_info(Exception, State) ->
 	erlang:display({Exception, State}),
 	{noreply, State}.
 
-
+%% process_request : processes the request recieved from the client 
+%% It checks if the client wants to subscribe, unsubscribe, publish
+%% Args Msg = {Pid, command, topic, Msg} (Msg needed if command is publish)
 process_request(Msg, Socket) ->
 	Msg_string = [X || X <- erlang:binary_to_list(Msg), X =/= $\", X=/=${, X=/=$}],
 	 case erlang:list_to_tuple(string:tokens(Msg_string, ",")) of

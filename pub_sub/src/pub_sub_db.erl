@@ -1,3 +1,8 @@
+%%%-------------------------------------------------------------------
+%% @doc pub_sub_db ets db manager from pub_sub application.
+%% @end
+%%%-
+
 -module(pub_sub_db).
 
 -export([
@@ -13,6 +18,8 @@
 %%====================================================================
 %% API functions
 %%====================================================================
+%% setup is called to make sure that the table exits if not setup api creates one.
+%% Args : Table name
 setup(?TABLE) ->
 	case ets:whereis(?TABLE) of
 		undefined ->
@@ -20,11 +27,15 @@ setup(?TABLE) ->
 		_Tid -> ok
 	end.
 
+%% flush api is to delete a table
+%% Args : Table name
 flush() ->
 	setup(?TABLE),
 	ets:delete(?TABLE),
 	ok.
 
+%% add_subscriber adds a new subscriber to the db depending on the topic
+%% Args (Topic, {Client_Pid, Socket_Id})
 add_subscriber(Topic, Subscriber) ->
 	setup(?TABLE),
 	case read_subscribers(Topic) of
@@ -41,6 +52,8 @@ add_subscriber(Topic, Subscriber) ->
 
 	end.
 
+%% read_subscribers reads the subscriber list from DB depending on the Topic selected
+%% Args Topic 
 read_subscribers(Topic) ->
 	setup(?TABLE),
 	case ets:lookup(?TABLE, Topic) of
@@ -50,6 +63,8 @@ read_subscribers(Topic) ->
 	        []
 	end.
 
+%% delete_subscriber deletes particular client from the topic mentioned depending on client Pid
+%% Args Topic, ClientPid
 delete_subscriber(Topic, Pid)->
 	setup(?TABLE),
 	case read_subscribers(Topic) of
