@@ -45,7 +45,7 @@ add_subscriber(Topic, Subscriber) ->
 			{Pid, _Socket} = Subscriber,
 			case lists:keyfind(Pid,1,SubscribersList)of
 				{_PidR, _SocR} ->
-					io:format("CLIENT ALREADY SUBSCRIBED TO ~p Pid ~p  ~n",[Topic, Pid]);
+					io:format("~p CLIENT ALREADY SUBSCRIBED TO ~p Pid ~p  ~n",[?MODULE, Topic, Pid]);
 				_ ->
 					ets:insert(?TABLE, {Topic, [Subscriber | SubscribersList]})
 			end
@@ -69,15 +69,15 @@ delete_subscriber(Topic, Pid)->
 	setup(?TABLE),
 	case read_subscribers(Topic) of
 		[] ->
-			erlang:display({"TABLE EMPTY"});
+			erlang:display({?MODULE, "TABLE EMPTY"});
 		SubscribersList ->
 			case lists:keyfind(Pid,1,SubscribersList)of
 				{PidR, SocR} ->
-					erlang:display({PidR, SocR, "Deleting from db"}),
+					erlang:display({?MODULE, PidR, SocR, "Deleting from db"}),
 					New_SubscriberList = lists:delete({PidR, SocR},SubscribersList),
-					erlang:display({New_SubscriberList}),
+					erlang:display({?MODULE, New_SubscriberList}),
 					ets:insert(?TABLE, {Topic, New_SubscriberList});
 				_ ->
-					erlang:display({"CLIENT UNKNOWN ", Pid})
+					erlang:display({?MODULE, "CLIENT UNKNOWN ", Pid})
 			end
 	end.
