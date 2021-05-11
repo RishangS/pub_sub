@@ -40,7 +40,7 @@ start_socket() ->
 %% Period is the time interval in which the restart occures
 
 init([]) ->
-	{ok, ListenSocket} = gen_tcp:listen(5000, [binary, {active,true}]),
+	{ok, ListenSocket} = gen_tcp:listen(5001, [binary, {active,true}]),
 	spawn_link(fun empty_listeners/0),
 	Child = 
 		[
@@ -54,5 +54,5 @@ init([]) ->
 %% Can start N number of listeners to process huge number of request, 
 %% this stays active even if the processes get killed
 empty_listeners() ->
-	[start_socket() || _ <- lists:seq(1,1)],
+	[start_socket() || _ <- lists:seq(1,20)],
 	ok.
