@@ -2,18 +2,21 @@
 -include_lib("common_test/include/ct.hrl").
 
 -export([all/0]).
--export([ subscribe_server_test/0, publish_test/0]).
+-export([ subscribe_server_test/0, publish_test/0, init_per_testcase/2, end_per_testcase/2]).
 
 -define (PORT , 5001).
 
 all() -> [subscribe_server_test, publish_test].
 
-init_per_suite(Config) ->
+init_per_testcase(subscribe_server_test, Config) ->
   _ = application:ensure_all_started(pub_sub_manager),
   _ = application:ensure_all_started(pub_sub_app),
   	erlang:display(self()),	
   Config.
 
+end_per_testcase(subscribe_server_test, Config) ->
+	pub_sub_app:stop(),
+  Config.
 
 subscribe_server_test()->
 	{ok,SocketId} = pub_sub_manager:subscribe("Hello", ?PORT),
@@ -22,5 +25,6 @@ subscribe_server_test()->
 publish_test() ->
 	pub_sub_manager:publish("Hello", ?PORT, "Test_ct").
 
-subscribe_N_clients()->
-	[]
+
+% subscribe_N_clients()->
+% 	[]
