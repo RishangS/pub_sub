@@ -7,7 +7,9 @@ To compile the application please run below command from the terminal from proje
 To run the application please run below command
 	"rebar3 shell"
 
-Build
------
+pub_sub_manager is the client module, to start client and use it follow below steps
+open erlang shell in the directory
+run c(module name).
+{ok, module name} is returned if its a success
+call the module functions from the shell and establish server client communication.
 
-    $ rebar3 compile
