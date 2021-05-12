@@ -113,7 +113,6 @@ disconnect(Topic, Port)->
 
 %% wait_for_msg is a reciving loop which waits to recieve data from the publisher
 wait_for_msg(Socket) ->
-	timer:sleep(50),
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
         	io:format("Data recieved : ~p ~n",[Data]),	

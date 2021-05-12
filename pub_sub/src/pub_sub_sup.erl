@@ -40,7 +40,7 @@ start_socket() ->
 %% Period is the time interval in which the restart occures
 
 init([]) ->
-	{ok, ListenSocket} = gen_tcp:listen(5001, [binary, {active,true}]),
+	{ok, ListenSocket} = gen_tcp:listen(5002, [binary, {active,true}]),
 	spawn_link(fun empty_listeners/0),
 	Child = 
 		[
